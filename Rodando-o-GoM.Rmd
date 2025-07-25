@@ -1,0 +1,86 @@
+---
+title: "Rodando o GoM"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## Requisitos
+
+Para rodar um modelo GoM a partir do R-script GoMRcpp.R, é necessário que, além deste, o Rtools esteja instalado no computador. O GoMRcpp.R depende dos pacotes `Rcpp` e `inline` para funcionar.
+
+*Observação*: o modelo foi rodado utilizando a versão 3.6.2 do R para Windows e 3.5 do Rtools e não funcionará nas versões 4.0.0 ou superiores do R ou superiores à versão 3.5 do Rtools.
+
+R 3.6.2: https://cran.r-project.org/bin/windows/base/old/3.6.2/
+
+Rtools 3.5: https://cran.r-project.org/bin/windows/Rtools/history.html
+
+## Download do GoMRcpp.R
+
+O arquivo R-scrip GoMRcpp.R encontra-se disponível para download no link: https://github.com/julimarsp/GoMRcpp.R
+
+Há também um passo a passo detalhado de como o modelo funciona e de como executá-lo. O presente arquivo contém apenas o essencial para rodar o modelo GoM com sucesso.
+
+## Instalando os pacotes necessários
+
+O pacote `haven` é necessário para carregar bases de dados do SPSS no R. 
+
+```{r pacotes}
+install.packages("Rcpp", dependencies = TRUE)
+install.packages("haven")
+```
+
+## Carregando o GoMRcpp.R
+
+O arquivo GoMRcpp.R deve estar no diretório de trabalho. Se não estiver, especificar o caminho. Ao carregar o GoMRcpp.R, os pacotes necessários serão automaticamente carregados. Se necessário, usar a função `library` para carregar os pacotes `Rcpp` e `inline`. 
+
+```{r carregando gomrcpp, message=FALSE, warning=FALSE}
+source("GoMRcpp.R")
+```
+
+## Carregando a base de dados
+
+A base de dados foi previamente preparada conforme os critérios especificados no artigo. O arquivo "ESEB2018.sav" deve estar no diretório de trabalho. Se não estiver, especificar o caminho.
+
+```{r eseb2018, message=FALSE}
+library(haven)
+ESEB2018 <- read_sav("ESEB2018.sav")
+```
+
+## Rodando o GoM com 3 perfis extremos
+
+Ao rodar a função abaixo, uma pasta chamada K3 será criada. Nesta pasta serão encontrados os arquivos "GoMK3(1).TXT" e "LogGoMK3(1).TXT". O primeiro arquivo se refere à base de dados acrescida dos escores de GoM para cada indivíduo da amostra ($g_{ik}$). O segundo arquivo contém informações como o Critério de Informação de Akaike, as probabilidades $\lambda$ e as Razões RLFM ou E/O, importantes para caracterizar os perfis extremos.
+
+*Observação*: devido à enorme quantidade de parâmetros calculada pelo modelo, rodá-lo toma algum tempo (cerca de 15 minutos).
+
+```{r rodando modelo, message=FALSE, warning=FALSE}
+gom.eseb2018_3perf <- GoMRcpp(data.object = ESEB2018,
+                              initial.K = 3,
+                              case.id = "seq",
+                              dec.char = ",")
+```
+
+Para gerar modelos com 2 ou 4 perfis extremos, basta mudar o parâmetro `initial.k` para = 2 ou = 4.
+
+## Informações de versões
+
+```{r versions, echo=FALSE}
+SI <- sessionInfo()
+toLatex(SI, locale = FALSE)
+```
+
+\begin{itemize}\raggedright
+  \item R version 3.6.2 (2019-12-12), \verb|x86_64-w64-mingw32|
+  \item Running under: \verb|Windows 10 x64 (build 19041)|
+  \item Matrix products: default
+  \item Base packages: base, datasets, graphics, grDevices, methods, stats, utils
+  \item Other packages: haven~2.3.1, inline~0.3.17, Rcpp~1.0.6
+  \item Loaded via a namespace (and not attached): cellranger~1.1.0, compiler~3.6.2,
+    crayon~1.4.1, digest~0.6.27, ellipsis~0.3.1, evaluate~0.14, fansi~0.4.2,
+    forcats~0.5.1, foreign~0.8-72, hms~1.0.0, htmltools~0.5.1.1, knitr~1.31,
+    lifecycle~1.0.0, magrittr~2.0.1, pillar~1.5.1, pkgconfig~2.0.3, R6~2.5.0, readr~1.4.0,
+    readxl~1.3.1, rlang~0.4.10, rmarkdown~2.7, tibble~3.1.0, tools~3.6.2, utf8~1.1.4,
+    vctrs~0.3.6, xfun~0.22, yaml~2.2.1
+\end{itemize}
